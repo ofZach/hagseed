@@ -155,6 +155,8 @@ void displacementScene::setup(){
     
     
     img.allocate(512, 424, OF_IMAGE_GRAYSCALE);
+    prevImg.allocate(512, 424, OF_IMAGE_GRAYSCALE);
+
 
 }
 
@@ -194,24 +196,61 @@ void displacementScene::update(){
                  0 );
         
         
+        int diff = 0;
+        
+        unsigned char * pixa = img.getPixels();
+        unsigned char * pixb = prevImg.getPixels();
+
+        for (int i = 0; i < 512*424; i++){
+            if (pixa[i] != pixb[i]){
+                diff++;
+            }
+        }
+        
+        //cout << "diff " << diff << endl;
+        
+        if (diff != 0){
+            goodDiff = diff;
+            
+        }
+        //cout << diffSmooth << endl;
+        
+        
+        prevImg.setFromPixels(img.getPixels());
+        
+        cv::Mat dist;
+        cv::distanceTransform(m, dist, CV_DIST_L2, 5);
+        cv::normalize(dist, dist, 0, 1.0, cv::NORM_MINMAX);
+        
+        float* matData = (float*)dist.data;
+        unsigned char * pix = img.getPixels();
+        for (int i = 0; i < 512*424; i++){
+            pix[i] = powf(matData[i], 0.2) * 255.0;
+        }
+        
+       
+        
+        
     }
     
     
-    ofxCv::erode(img);
-    ofxCv::erode(img);
-    ofxCv::erode(img);
-    ofxCv::erode(img);
-    ofxCv::erode(img);
-//    ofxCv::dilate(img);
-//    ofxCv::dilate(img);
-//    ofxCv::dilate(img);
-    
+//    ofxCv::erode(img);
+//    ofxCv::erode(img);
+//    ofxCv::erode(img);
+//    ofxCv::erode(img);
+//    ofxCv::erode(img);
+////    ofxCv::dilate(img);
+////    ofxCv::dilate(img);
+////    ofxCv::dilate(img);
+//    
     for (int i = 0; i < 14; i++){
         ofxCv::blur(img, 3);
     }
     
     img.update();
     
+    
+    diffSmooth = 0.999 * diffSmooth + 0.001 * goodDiff;
 }
 
 
@@ -269,11 +308,13 @@ void displacementScene::draw(){
     
     vector < ofPolyline > linesTo;
     
-    cout << ofGetMouseX() << " " << ofGetMouseY() << endl;
+    
+    //787 420
+    ///cout << ofGetMouseX() << " " << ofGetMouseY() << endl;
     for (int i = 0; i < lines.size(); i++){
         ofPolyline myLine;
-        myLine.addVertex(ofPoint(100 -600 + 510, 30 + i * 50 - 1000 + 30));
-        myLine.addVertex(ofPoint(1100 - 600 + 510, 30 + i * 50 -1000 + 30));
+        myLine.addVertex(ofPoint(100 - 575, 30 + i * 50  + 30 - 650));
+        myLine.addVertex(ofPoint(1100 - 575, 30 + i * 50  + 30 - 650 ));
         myLine = myLine.getResampledByCount(100);
         linesTo.push_back(myLine);
     }
@@ -438,8 +479,9 @@ void displacementScene::draw(){
     
     
     //cout << mouseX << " " << mouseY << endl;
-    ofTranslate(455, 679);
-    ofScale(0.7, 0.7);
+    ofTranslate(ofGetWidth()/2, ofGetHeight()/2);
+    float scale = ofMap(diffSmooth, 2000, 5000, 0.8, 1.5, true);
+    ofScale(scale, scale );
     
     
     for (int i = 0; i < letterInSpaces.size(); i++){

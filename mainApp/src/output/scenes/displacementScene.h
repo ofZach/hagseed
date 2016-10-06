@@ -29,6 +29,8 @@ public:
     
     ofImage img;
     
+    ofImage prevImg;;
+    
     vector<ofxParagraph*> paragraphs;
     ofImage spot;
     vector < line > lines;
@@ -44,5 +46,8 @@ public:
     float offsetTarget;
     
     ofxCv::ContourFinder finder;
+    
+    float diffSmooth;
+    int goodDiff;
     
 };
