@@ -30,7 +30,7 @@ void inputManager::setup(){
     graypixels = new unsigned char[512*424];
     medianFiltered = new unsigned char[512*424];
     medianFilteredResult.allocate(512, 424, OF_IMAGE_GRAYSCALE);
-    
+    grayPix.allocate(512, 424, OF_IMAGE_GRAYSCALE);
     panel.loadFromFile("settings.xml");
     
     
@@ -64,43 +64,46 @@ void inputManager::update(){
             graypixels[i] = data[i*3];
         }
         
+        grayPix.setFromPixels(graypixels, 512, 424, 1);
         
-        ctmf(graypixels, medianFiltered,
-             512, 424, 512, 512,medianFilterAmount, 1);
-        
-        medianFilteredResult.setFromPixels(medianFiltered, 512, 424, OF_IMAGE_GRAYSCALE);
-        
-        finder.setSortBySize(true);
-        finder.setThreshold(threshold);
-        
-        finder.findContours(medianFilteredResult);
+        IAT.analyze(grayPix);
+        //cout << "new frame " << endl;
     }
+    
+    IAT.update();
+    
+    if (IAT.isFrameNew()){
+        
+        if (IAT.getPixels().getWidth() == 512){
+            medianFilteredResult.setFromPixels(IAT.getPixels());
+            finder.setSortBySize(true);
+            finder.setThreshold(threshold);
+            finder.findContours(medianFilteredResult);
+            IAT.medianFilterAmount = medianFilterAmount;
+        }
+    }
+    
 #else
     kinect->update();
     if( kinect->isFrameNew() ){
         texDepth.loadData( kinect->getDepthPixels() );
-        //texRGB.loadData( kinect->getRgbPixels() );
-        
-        unsigned char * data  = kinect->getDepthPixels().getData();
-        
-        
-        // todo is this OK ???
-        for (int i = 0; i < 512*424; i++){
-            graypixels[i] = data[i];
-        }
-        
-        // todo move this to kinect.
-        ctmf(graypixels, medianFiltered,
-             512, 424, 512, 512,medianFilterAmount, 1);
-        
-        medianFilteredResult.setFromPixels(medianFiltered, 512, 424, OF_IMAGE_GRAYSCALE);
-        
-        finder.setSortBySize(true);
-        finder.setThreshold(threshold);
-        
-        finder.findContours(medianFilteredResult);
-        
+        unsigned char * graypixels  = kinect->getDepthPixels().getData();
+        grayPix.setFromPixels(graypixels, 512, 424, 1);
+        IAT.analyze(grayPix);
     }
+
+    IAT.update();
+    
+    if (IAT.isFrameNew()){
+        if (IAT.getPixels().getWidth() == 512){
+            medianFilteredResult.setFromPixels(IAT.getPixels());
+            finder.setSortBySize(true);
+            finder.setThreshold(threshold);
+            finder.findContours(medianFilteredResult);
+            IAT.medianFilterAmount = medianFilterAmount;
+        }
+    }
+
     
     
 #endif

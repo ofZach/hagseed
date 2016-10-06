@@ -5,6 +5,8 @@
 #include "ctmf.h"
 #include "ofxGui.h"
 #include "ofxKinectV2.h"
+#include "ImgAnalysisThread.h"
+
 
 using namespace milton;
 
@@ -39,6 +41,7 @@ public:
     
     unsigned char * graypixels;
     unsigned char * medianFiltered;
+    ofPixels grayPix;
     
     ofImage medianFilteredResult;
     
@@ -49,6 +52,8 @@ public:
     ofParameter < int > medianFilterAmount;
     ofParameter < float > speed;
     ofxPanel panel;
+    
+    ImgAnalysisThread IAT;
     
     
 };
