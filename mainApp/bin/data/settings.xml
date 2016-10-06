@@ -1,0 +1,7 @@
+<group>
+	<settings>
+		<threshold>150</threshold>
+		<medianFilterAmount>6</medianFilterAmount>
+	</settings>
+<group/>
+</group>
